@@ -3,67 +3,62 @@
 }
 
 body {
-  background-color: #f5f6fa;
+  background-color: #797979   ;
+  height: 100%;
 }
 
 .app {
   display: flex;
   justify-content: space-evenly;
-  background-color:#262625
-  ;
+  background-color:  #797979  ;
   padding: 20px;
 }
 
 .app__dropdown {
-  background-color: #fc3c3c;
-  border-color : none;
+  background-color:  #d2cac5;
 }
-
+.flag{
+  height: 15px;
+  margin-left: 10px;
+  margin-right: 13px;
+}
 .app__header {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
   justify-content: space-between;
 }
-.rightcard{
-  background-color: #0a0a0a;
-  height:100%;
-}
+
 .app__header > h1 {
-  color: #fc3c3c;
+  color:  #1d1917;
   font-size: 2rem;
 }
 
 .app__stats {
   display: flex;
   justify-content: space-between;
-  
 }
-
+.first{
+  background-color:  #262726;
+  color:aliceblue ;
+}
 .app__left {
   flex: 0.9;
 }
 
 .app__information > h3 {
-  color: #fc3c3c;
+  color: #6a5d5d;
   font-weight: 400;
   font-size: 1.5rem;
   margin-bottom: 1rem;
-  /* right side box coloring */
 }
 
 .app__information > h3:last-of-type {
   margin-top: 1rem;
 }
 
-.app__right {
-  background-color: #14fa0c;
-}
-
-.flag{
-  height: 15px;
-  margin-left: 10px;
-  margin-right: 13px;
+.rightbrown {
+background-color: 	 #d2cac5
 }
 
 @media (max-width: 990px) {
