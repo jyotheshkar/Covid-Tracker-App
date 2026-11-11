@@ -1,3 +1,4 @@
+import { buildChartData } from './chartData';
 
 import React,{useState,useEffect} from 'react';
 import { Line } from "react-chartjs-2";
@@ -51,42 +52,25 @@ const options = {
   };
 
 
-  const buildChartData = (data, caseType) => {
-    const chartData = [];
-    let lastDataPoint;
-       for(let date in data.cases) {
-        if(lastDataPoint) {
-            let newDataPoint = {
-                x: date,
-                y:data[caseType][date] - lastDataPoint,
-            }
-            chartData.push(newDataPoint);
-        }
-        lastDataPoint = data[caseType][date];
-    }
-    return chartData;
-}
 const LineGraph = ({casesType = "cases"}) => {
-const [data,setData] = useState({});
+const [data,setData] = useState([]);
 
 // https://disease.sh/v3/covid-19/historical/all?lastdays=30
 
+const [error, setError] = useState('');
 useEffect(() => {
-    const fetchData = async () => {
-        fetch("https://disease.sh/v3/covid-19/historical/all?lastdays=120")
-        .then((response) => response.json())
-        .then((data) => {
-           console.log(data);
-           const chartData = buildChartData(data , casesType );
-           setData(chartData);
-        });
-
-    }
-fetchData();
-},[casesType]);
+  const controller = new AbortController();
+  setData([]); setError('');
+  fetch('https://disease.sh/v3/covid-19/historical/all?lastdays=120', { signal: controller.signal })
+    .then((response) => { if (!response.ok) throw new Error('History request failed'); return response.json(); })
+    .then((history) => { if (!controller.signal.aborted) setData(buildChartData(history, casesType)); })
+    .catch(() => { if (!controller.signal.aborted) setError('Historical series is unavailable.'); });
+  return () => controller.abort();
+}, [casesType]);
 
   return (
     <div className='graph'>
+      {error && <p role='alert'>{error}</p>}
       
        {data?.length > 0 && (
         

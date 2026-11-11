@@ -68,3 +68,7 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+## Technical architecture and maintenance
+
+See [architecture, diagrams, setup and operating limits](docs/ARCHITECTURE.md) for the implemented flow, 11 November 2026 maintenance, verification commands and proposed scaling path. This remains a learning project; production capacity is not established.
