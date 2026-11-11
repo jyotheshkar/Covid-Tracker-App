@@ -8,7 +8,7 @@ import {
   Select,
   Card,
   CardContent,
-} from "@material-ui/core";
+} from "@mui/material";
 import InfoBox from "./InfoBox";
 import LineGraph from "./LineGraph";
 import Table from "./Table";
@@ -27,57 +27,44 @@ const App = () => {
   const [mapCenter, setMapCenter] = useState({ lat: 34.80746, lng: -40.4796 });
   const [mapZoom, setMapZoom] = useState(3);
 
+  const [error, setError] = useState('');
   useEffect(() => {
-    fetch("https://disease.sh/v3/covid-19/all")
-      .then((response) => response.json())
-      .then((data) => {
-        setCountryInfo(data);
-      });
-  }, []);
+    const controller = new AbortController();
+    setError('');
+    const url = country === 'worldwide' ? 'https://disease.sh/v3/covid-19/all' : `https://disease.sh/v3/covid-19/countries/${encodeURIComponent(country)}`;
+    fetch(url, { signal: controller.signal }).then((response) => {
+      if (!response.ok) throw new Error('Country request failed');
+      return response.json();
+    }).then((data) => {
+      if (controller.signal.aborted) return;
+      setCountryInfo(data);
+      const coordinates = data.countryInfo;
+      if (country === 'worldwide' || !Number.isFinite(coordinates?.lat) || !Number.isFinite(coordinates?.long)) {
+        setMapCenter({ lat: 34.80746, lng: -40.4796 }); setMapZoom(3);
+      } else { setMapCenter([coordinates.lat, coordinates.long]); setMapZoom(4); }
+    }).catch(() => { if (!controller.signal.aborted) { setCountryInfo({}); setError('Country totals are unavailable.'); } });
+    return () => controller.abort();
+  }, [country]);
 
   useEffect(() => {
-    const getCountriesData = async () => {
-      fetch("https://disease.sh/v3/covid-19/countries")
-        .then((response) => response.json())
-        .then((data) => {
-          const countries = data.map((country) => ({
-            name: country.country,
-            value: country.countryInfo.iso2,
-            flag: <img src={country.countryInfo.flag} alt="/" className="flag" />,
-
-          }));
-          let sortedData = sortData(data);
-          setCountries(countries);
-          setMapCountries(data);
-          setTableData(sortedData);
-        });
-    };
-
-    getCountriesData();
+    const controller = new AbortController();
+    fetch('https://disease.sh/v3/covid-19/countries', { signal: controller.signal }).then((response) => {
+      if (!response.ok) throw new Error('Countries request failed');
+      return response.json();
+    }).then((data) => {
+      if (!Array.isArray(data)) throw new Error('Invalid country list');
+      if (controller.signal.aborted) return;
+      setCountries(data.filter((item) => item.countryInfo?.iso2).map((item) => ({ name:item.country, value:item.countryInfo.iso2, flag:<img src={item.countryInfo.flag} alt='' className='flag'/> })));
+      setMapCountries(data); setTableData(sortData(data));
+    }).catch(() => { if (!controller.signal.aborted) setError('Country list is unavailable.'); });
+    return () => controller.abort();
   }, []);
-
-  console.log(casesType);
-
-  const onCountryChange = async (e) => {
-    const countryCode = e.target.value;
-
-    const url =
-      countryCode === "worldwide"
-        ? "https://disease.sh/v3/covid-19/all"
-        : `https://disease.sh/v3/covid-19/countries/${countryCode}`;
-    await fetch(url)
-      .then((response) => response.json())
-      .then((data) => {
-        setInputCountry(countryCode);
-        setCountryInfo(data);
-        setMapCenter([data.countryInfo.lat, data.countryInfo.long]);
-        setMapZoom(4);
-      });
-  };
+  const onCountryChange = (event) => setInputCountry(event.target.value);
 
   return (
     <div className="app">
       <div className="app__left">
+        {error && <p role="alert">{error}</p>}
         <div className="app__header">
           <h1>COVID-19 Tracker</h1>
           <FormControl className="app__dropdown">
@@ -88,7 +75,7 @@ const App = () => {
             >
               <MenuItem value="worldwide">Worldwide</MenuItem>
               {countries.map((country) => (
-                <MenuItem value={country.value}>{country.flag} {country.name}</MenuItem>
+                <MenuItem key={country.value} value={country.value}>{country.flag} {country.name}</MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -129,7 +116,7 @@ const App = () => {
       <Card className="app__right">
         <CardContent className="rightcard">
           <div className="app__information">
-            <h3>Live Cases by Country</h3>
+            <h3>Reported Cases by Country</h3>
             <Table countries={tableData} />
             <h3>Worldwide new {casesType}</h3>
             <LineGraph casesType={casesType} />

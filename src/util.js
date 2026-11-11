@@ -39,8 +39,9 @@ export const prettyPrintStat = (stat) =>
   stat ? `+${numeral(stat).format("0.0a")}` : "+0";
 
 export const showDataOnMap = (data, casesType = "cases") =>
-  data.map((country) => (
+  data.filter((country) => Number.isFinite(country.countryInfo?.lat) && Number.isFinite(country.countryInfo?.long) && Number.isFinite(country[casesType]) && country[casesType] >= 0).map((country) => (
     <Circle
+      key={country.countryInfo?.iso3 || country.country}
       center={[country.countryInfo.lat, country.countryInfo.long]}
       color={casesTypeColors[casesType].hex}
       fillColor={casesTypeColors[casesType].hex}
